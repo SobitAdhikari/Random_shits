@@ -1,5 +1,5 @@
 from django.db import models
-from rest_framework.validators import ValidationError
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,PermissionsMixin
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -24,11 +24,12 @@ class User(AbstractBaseUser,PermissionsMixin):
     last_name=models.CharField(max_length=55)
     is_active=models.BooleanField(default=True)
     is_staff=models.BooleanField(default=False)
-    phone_number = PhoneNumberField()
+    phone_number = PhoneNumberField(unique=True)
     bio=models.CharField(max_length=255,blank=True,null=True)
-    created_at=models.DateTimeField( auto_now=True)
+    created_at=models.DateTimeField( auto_now_add=True)
     profile_picture=models.ImageField(upload_to='profile_pic/',blank=True,null=True)
     objects=UserManager()
     USERNAME_FIELD="email"
-    REQUIRED_FIELDS=('first_name','last_name','phone_number')
-
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
+    def __str__(self):
+        return self.email

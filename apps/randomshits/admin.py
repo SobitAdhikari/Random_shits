@@ -2,14 +2,17 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 # Register your models here.
 from .models import User
+from auditlog.registry import auditlog
+
+auditlog.register(User)
 
 class CustomUserAdmin(UserAdmin):
     model=User
-    readonly_fields=('password','created_at','email',)
-    list_display=['email','first_name','last_name','phone_number','is_staff']
+    readonly_fields=('created_at',)
+    list_display=['id', 'email','first_name','last_name','phone_number','is_staff']
     search_fields=['email']
     ordering=['created_at',]
-    exclude = ('password',)
+    # exclude = ('password',)
 
     fieldsets = (
         (None, {'fields': ('email',)}),
@@ -18,6 +21,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': (
                 'first_name',
                 'last_name',
+                # 'password',
                 'phone_number',
                 'bio',
                 'profile_picture',
@@ -54,6 +58,9 @@ class CustomUserAdmin(UserAdmin):
             ),
         }),
     )
-
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # editing existing user
+            return self.readonly_fields + ('email', 'created_at')
+        return self.readonly_fields
 
 admin.site.register(User,CustomUserAdmin) 
