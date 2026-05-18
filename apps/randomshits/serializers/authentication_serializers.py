@@ -1,7 +1,7 @@
 import re
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from ..models import User
+from ..models import User,Notification
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -60,8 +60,10 @@ class LoginSerializer(serializers.Serializer):
 
         identifier = attrs.get("identifier")#receive what client sends
         password = attrs.get("password")
+        request = self.context.get("request")
 
         user = authenticate(#verify 
+            request=request,
             username=identifier,
             password=password
         )
@@ -75,4 +77,8 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
-
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = "__all__"
+        read_only_fields = ["user", "created_at"]

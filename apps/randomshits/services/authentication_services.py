@@ -1,4 +1,4 @@
-from ..models import   User
+from ..models import   User,Notification
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class AuthenticationServices:
@@ -32,6 +32,11 @@ class LoginServices:
     def login_user(user):
 
         tokens = LoginServices.get_refresh_token(user)
+        Notification.objects.create(
+            user=user,
+            title="New Login",
+            message="You logged in successfully"
+        )
 
         return {
             "user": {

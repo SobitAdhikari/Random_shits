@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 from ..serializers.authentication_serializers import RegistrationSerializer,LoginSerializer
 from ..services.authentication_services import AuthenticationServices,LoginServices
-
 # Create your views here.
 #for reg
 
@@ -28,10 +27,11 @@ class LoginView(APIView):
 
     def post(self, request):
 
-        serializer = LoginSerializer(data=request.data)
+        serializer = LoginSerializer(data=request.data,context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
+
 
         result = LoginServices.login_user(user)
 
@@ -40,3 +40,16 @@ class LoginView(APIView):
             "user": result["user"],
             "tokens": result["tokens"],
         }, status=status.HTTP_200_OK)
+
+from ..models import Notification
+from ..serializers.authentication_serializers import NotificationSerializer
+from rest_framework.permissions import IsAuthenticated
+
+class NotificationView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request):
+        notifications=Notification.objects.filter(user=request.user).order_by("-created_at")
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data)
+
+

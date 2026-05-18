@@ -5,6 +5,10 @@ from .models import User
 from auditlog.registry import auditlog
 
 auditlog.register(User)
+from django.contrib import admin
+# from axes.models import AccessAttempt
+
+# admin.site.register(AccessAttempt)
 
 class CustomUserAdmin(UserAdmin):
     model=User

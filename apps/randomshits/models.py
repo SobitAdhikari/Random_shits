@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,PermissionsMixin
 from phonenumber_field.modelfields import PhoneNumberField
+from django.conf import settings
 
 # Create your models here.
 class UserManager(BaseUserManager):
@@ -33,3 +34,17 @@ class User(AbstractBaseUser,PermissionsMixin):
     REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
     def __str__(self):
         return self.email
+    
+class Notification(models.Model):
+    user=models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    title=models.CharField(max_length=255)
+    message=models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user}-{self.title}"

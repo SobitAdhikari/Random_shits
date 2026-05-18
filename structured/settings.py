@@ -45,13 +45,31 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     #added apps
     "apps.randomshits",
+    "noti",
+    # "apps.notifications",
     "rest_framework",
     "auditlog",
+    "axes",
+    "channels",
+  
 
 ]
+#setting asgi application for django-channels
+ASGI_APPLICATION = "structured.asgi.application"
+##Configure Redis Channel Layer
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -59,19 +77,31 @@ REST_FRAMEWORK = {
     ),
 }
 AUTHENTICATION_BACKENDS = [
-    "apps.randomshits.custom_email_backend.EmailOrPhoneBackend",
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
-]
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "apps.randomshits.custom_email_backend.EmailOrPhoneBackend",
 ]
 
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+
+    "axes.middleware.AxesMiddleware",
+
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# for login attempts control
+AXES_FAILURE_LIMIT=5
+AXES_COOLOFF_TIME=0.01# hours
+AXES_RESET_ON_SUCCESS=True
+##
 ROOT_URLCONF = 'structured.urls'
 
 TEMPLATES = [
