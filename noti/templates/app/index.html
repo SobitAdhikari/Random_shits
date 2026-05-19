@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -10,38 +10,243 @@
 </head>
 
 <body>
-    <h1>Count Page</h1>
-    <h2 id="count"></h2>
+    <h1>Chat app</h1>
+    <textarea name="" id="chat-log" rows="20" cols="80"></textarea><br>
+    <input type="text" id="text-message-input" size="100"><br>
+    <input type="button" value="Send" id="chat-message-submit">
 
 
     <script>
         var ws = new WebSocket('ws://127.0.0.1:8000/ws/asc/')
-
-        ws.onopen = function () {
-            console.log('Websocket connection open...')
-            ws.send('Hi, Message from Client...')
+        ws.onopen=function(){
+            console.log("connected sucessfully")
         }
+        ws.onmessage=function(event){
+            console.log("Server bata pathaiyeko msg prapta vayo .....",event.data)
+            const data =JSON.parse(event.data)
+            console.log('parsed_data ',data )
+            console.log('Actaul message ',data.msg )
+            document.querySelector('#chat-log').value += (data.msg + '\n')
 
-        ws.onmessage = function (event) {
-            console.log('EVENT...', event)
-            console.log('Message Received from Server...', event.data)
-            console.log('Type of Event Data', typeof (event.data))
-
-            var data = JSON.parse(event.data)
-
-            console.log('Parsed Data', data)
-            console.log('Type of Parsed Data', typeof (data))
-
-            document.getElementById("count").innerText = data.count
         }
-        
+        ws.onclose=function(event){
+            console.log("yettikai gayo yarr")
+        };
+        document.getElementById('chat-message-submit').onclick=function(){
+            const messageInputDom =document.getElementById('text-message-input')
+            const message =messageInputDom.value
+            ws.send( JSON.stringify({
+                'msg':message
 
-        ws.onerror = function (event) {
-            console.log('Websocket Error Occurred...', event)
-        }
+        }))
+        messageInputDom.value=""
+    }
 
-        ws.onclose = function (event) {
-            console.log('Websocket Connection Closed...', event)
-        }
     </script>
+</body> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body{
+            background: linear-gradient(to right,#141e30,#243b55);
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .chat-container{
+            width:400px;
+            height:650px;
+            background:white;
+            border-radius:20px;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .chat-header{
+            background:#075e54;
+            color:white;
+            padding:20px;
+            text-align:center;
+            font-size:22px;
+            font-weight:bold;
+        }
+
+        .chat-box{
+            flex:1;
+            padding:15px;
+            overflow-y:auto;
+            background:#ece5dd;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .message{
+            max-width:75%;
+            padding:12px;
+            margin:8px 0;
+            border-radius:15px;
+            word-wrap:break-word;
+            font-size:15px;
+        }
+
+        .sent{
+            background:#dcf8c6;
+            align-self:flex-end;
+            border-bottom-right-radius:5px;
+        }
+
+        .received{
+            background:white;
+            align-self:flex-start;
+            border-bottom-left-radius:5px;
+        }
+
+        .input-area{
+            display:flex;
+            padding:15px;
+            background:#f0f0f0;
+        }
+
+        .input-area input{
+            flex:1;
+            padding:12px;
+            border:none;
+            border-radius:25px;
+            outline:none;
+            font-size:16px;
+        }
+
+        .input-area button{
+            margin-left:10px;
+            padding:12px 20px;
+            border:none;
+            border-radius:25px;
+            background:#075e54;
+            color:white;
+            cursor:pointer;
+            font-size:16px;
+            transition:0.3s;
+        }
+
+        .input-area button:hover{
+            background:#0b806f;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chat-container">
+
+        <div class="chat-header">
+            Mero Chat
+        </div>
+
+        <div class="chat-box" id="chat-box" >
+
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="text-message-input" placeholder="Type message...">
+            <button id="chat-message-submit">Send</button>
+        </div>
+
+    </div>
+
+<script>
+
+    const chatBox = document.getElementById('chat-box')
+
+    const ws = new WebSocket('ws://127.0.0.1:8000/ws/asc/')
+
+    let myChannelName = null
+
+    ws.onopen = function(){
+        console.log("Connected successfully")
+    }
+
+    ws.onmessage = function (event) {
+
+        const data = JSON.parse(event.data)
+
+        console.log(data)
+
+        // first connection message
+        if (data.type === 'connection') {
+
+            myChannelName = data.channel_name
+
+            console.log("My Channel Name:", myChannelName)
+
+            return   // IMPORTANT
+        }
+
+        const messageDiv = document.createElement('div')
+
+        messageDiv.classList.add('message')
+
+        if (data.sender_channel_name === myChannelName) {
+            messageDiv.classList.add('sent')
+        }
+        else {
+            messageDiv.classList.add('received')
+        }
+
+        messageDiv.innerText = data.msg
+
+        chatBox.appendChild(messageDiv)
+
+        chatBox.scrollTop = chatBox.scrollHeight
+    }
+
+    ws.onclose = function(){
+        console.log("Disconnected")
+    }
+
+    document.getElementById('chat-message-submit').onclick = function(){
+
+        const messageInputDom = document.getElementById('text-message-input')
+
+        const message = messageInputDom.value
+
+        if(message.trim() === ""){
+            return
+        }
+
+        ws.send(JSON.stringify({
+            'msg':message
+        }))
+
+        messageInputDom.value = ""
+    }
+
+    // press Enter to send
+    document.getElementById('text-message-input')
+    .addEventListener('keyup', function(event){
+
+        if(event.key === 'Enter'){
+            document.getElementById('chat-message-submit').click()
+        }
+    })
+
+</script>
+
 </body>
+</html>
